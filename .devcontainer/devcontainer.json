@@ -1,0 +1,46 @@
+{
+	"name": "rp2040_rust_app",
+	// "build": {
+	// 	"dockerfile": "Dockerfile",
+	// 	"args": {
+	// 		"CONTAINER_USER": "rp2040",
+	// 		"CONTAINER_GROUP": "rp2040"
+	// 	}
+	// },
+	"dockerComposeFile": [
+		"./docker-compose.yml"
+	],
+	"service": "rp2040_rust_app",
+	"settings": {
+		"editor.formatOnPaste": true,
+		"editor.formatOnSave": true,
+		"editor.formatOnSaveMode": "file",
+		"editor.formatOnType": true,
+		"lldb.executable": "/usr/bin/lldb",
+		"files.watcherExclude": {
+			"**/target/**": true
+		},
+		"rust-analyzer.checkOnSave.command": "clippy",
+		"rust-analyzer.checkOnSave.allTargets": false,
+		"[rust]": {
+			"editor.defaultFormatter": "rust-lang.rust-analyzer"
+		}
+	},
+	"extensions": [
+		"ms-azuretools.vscode-docker",
+		"rust-lang.rust-analyzer",
+		"tamasfe.even-better-toml",
+		"serayuzgur.crates",
+		"mutantdino.resourcemonitor",
+		"yzhang.markdown-all-in-one",
+		"webfreak.debug",
+		"actboy168.tasks"
+	],
+	// "forwardPorts": [
+	// 	9012,
+	// 	9333,
+	// 	8000
+	// ],
+	"workspaceFolder": "/home/rp2040/rp2040_rust_app",
+	"shutdownAction": "stopCompose"
+}
