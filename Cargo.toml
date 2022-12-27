@@ -10,13 +10,13 @@ embedded-hal = "=1.0.0-alpha.9"
 defmt = "0.3.2"
 defmt-rtt = "0.4.0"
 panic-probe = { version = "0.3", features = ["print-defmt"] }
-rp2040-hal = { version = "0.6.0", features = ["rt"] }
+rp2040-hal = { version = "0.7.0", features = ["rt"] }
 rp2040-boot2 = "0.2.1"
 panic-halt = "0.2.0"
 usb-device = "0.2.9"
 usbd-hid = "0.6.1"
 heapless = "0.7.16"
-rp-pico = "0.5"
+rp-pico = "0.6.0"
 
 # embedded-sdmmc = "0.3.0"
 # critical-section = "1.1.1"
