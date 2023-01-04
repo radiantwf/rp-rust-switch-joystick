@@ -76,15 +76,19 @@ pub fn start() -> ! {
     }
     let _delay = unsafe { DELAY.as_mut().unwrap() };
     let timer = unsafe { TIMER.as_mut().unwrap() };
-    info!("{}\tstart", timer.get_counter());
+    info!("{}\tstart", timer.get_counter().ticks());
     loop {
         _delay.delay_us(500);
         if unsafe { CONNECTED } {
             let mut vec: Vec<u8, 64> = Vec::new();
             let input = unsafe { CONTROLLER_INPUT.as_mut().unwrap() };
             vec.push(0x30).unwrap();
-            vec.push(((timer.get_counter() / 1000) % 255).try_into().unwrap())
-                .unwrap();
+            vec.push(
+                ((timer.get_counter().ticks() / 1000) % 255)
+                    .try_into()
+                    .unwrap(),
+            )
+            .unwrap();
             vec.extend_from_slice(&input.buffer()).unwrap();
             let mut response: [u8; 64] = [0u8; 64];
             response[0..vec.len()].copy_from_slice(&vec[..]);
@@ -122,7 +126,9 @@ unsafe fn USBCTRL_IRQ() {
             match get_response(
                 &buffer,
                 &input.buffer(),
-                ((timer.get_counter() / 1000) % 255).try_into().unwrap(),
+                ((timer.get_counter().ticks() / 1000) % 255)
+                    .try_into()
+                    .unwrap(),
                 &mut response,
             ) {
                 Ok((status, count)) => {
@@ -133,7 +139,7 @@ unsafe fn USBCTRL_IRQ() {
                     // info!("{}\tProcess Recv Data Error", timer.get_counter());
                 }
                 Err(_err) => {
-                    info!("{}\tProcess Recv Data Error", timer.get_counter());
+                    info!("{}\tProcess Recv Data Error", timer.get_counter().ticks());
                 }
             }
             match _status {
@@ -170,7 +176,7 @@ unsafe fn USBCTRL_IRQ() {
             return;
         }
         Err(_err) => {
-            error!("{}\tUSB ERROR", timer.get_counter());
+            error!("{}\tUSB ERROR", timer.get_counter().ticks());
             return;
         }
     }
