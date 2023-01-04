@@ -29,7 +29,7 @@ const _INPUT2_ZL: u8 = 0b10000000;
 
 #[derive(Debug)]
 pub struct ProControllerInput {
-    action_line: String<100>,
+    action_line: String<255>,
 }
 impl ProControllerInput {
     pub fn new(_action_line: &str) -> Self {
