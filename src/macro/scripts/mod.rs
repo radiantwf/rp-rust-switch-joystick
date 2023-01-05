@@ -1,2 +1,2 @@
-mod script_pokemon_sv;
+mod pokemon;
 mod r#struct;
