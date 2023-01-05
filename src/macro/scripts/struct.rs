@@ -5,11 +5,12 @@ use heapless::String;
 #[derive(Debug)]
 pub struct Script {
     _name: String<100>,
+    _tag: String<100>,
     _lines_queue: VecDeque<String<255>, 1024>,
 }
 
 impl Script {
-    pub fn new(name: &str, action_text: &str) -> Self {
+    pub fn new(name: &str, tag: &str, action_text: &str) -> Self {
         let mut queue: VecDeque<String<255>, 1024> = VecDeque::new();
         let mut iter = action_text.split("\n");
         loop {
@@ -21,6 +22,7 @@ impl Script {
         }
         Script {
             _name: String::from_str(name).unwrap(),
+            _tag: String::from_str(tag).unwrap(),
             _lines_queue: queue,
         }
     }
