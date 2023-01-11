@@ -30,4 +30,7 @@ impl Script {
         let _queue = &self._lines_queue;
         return _queue;
     }
+    pub fn name(&self) -> &str {
+        &self._name.as_str()
+    }
 }
