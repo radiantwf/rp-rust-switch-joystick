@@ -89,12 +89,12 @@ fn main() -> ! {
     let core1 = &mut cores[1];
     let _test = core1.spawn(unsafe { &mut CORE1_STACK.mem }, move || core1_task());
 
-    r#macro::run("test", &mut _delay);
+    // r#macro::run("test", &mut _delay);
 
     loop {
         _delay.delay_ms(1);
-        // hid::pro_controller::set_input_line("A");
-        // _delay.delay_ms(1);
-        // hid::pro_controller::set_input_line("");
+        hid::pro_controller::set_input_line("A");
+        _delay.delay_ms(1);
+        hid::pro_controller::set_input_line("");
     }
 }
