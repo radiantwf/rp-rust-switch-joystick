@@ -7,7 +7,7 @@
 pub static BOOT2_FIRMWARE: [u8; 256] = rp2040_boot2::BOOT_LOADER_W25Q080;
 
 mod hid;
-mod r#macro;
+mod r#uart;
 
 use defmt::*;
 use defmt_rtt as _;
@@ -89,7 +89,7 @@ fn main() -> ! {
     let core1 = &mut cores[1];
     let _test = core1.spawn(unsafe { &mut CORE1_STACK.mem }, move || core1_task());
 
-    r#macro::run("test", &mut _delay);
+    r#uart::run(&mut _delay);
 
     // loop {
     //     _delay.delay_ms(1);
