@@ -1,12 +1,12 @@
+use crate::hid;
 use core::fmt::Write;
 use hal::{
     gpio::{bank0, Function, Pin, Uart},
     pac::UART1,
     uart::{Enabled, UartPeripheral},
 };
+use heapless::Vec;
 use rp2040_hal as hal;
-
-use crate::hid;
 
 pub fn run(
     _uart: &mut UartPeripheral<
@@ -21,15 +21,19 @@ pub fn run(
 ) -> ! {
     _uart.write_full_blocking(b"UART Connected\r\n");
 
+    let mut vec: Vec<u8, 10240> = Vec::new();
+    let mut buffer = [0u8; 1024];
     loop {
-        let mut buffer = [0u8; 1024];
         let ret = _uart.read_raw(&mut buffer);
         match ret {
-            Ok(_) => {
-                let buffer_str = core::str::from_utf8(&buffer).unwrap();
-                hid::pro_controller::set_input_line(buffer_str);
-                writeln!(_uart, "recv: {buffer_str}\r").unwrap();
-                delay.delay_ms(10);
+            Ok(size) => {
+                vec.extend_from_slice(&buffer[..size]).unwrap();
+                if buffer[size - 1] == b'\n' {
+                    let buffer_str = core::str::from_utf8(&vec.as_slice()).unwrap();
+                    hid::pro_controller::set_input_line(buffer_str);
+                    vec.clear();
+                    delay.delay_ms(1);
+                }
             }
             Err(_) => {
                 delay.delay_ms(1);
