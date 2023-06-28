@@ -1,10 +1,13 @@
 use core::fmt::Write;
+use cortex_m::prelude::_embedded_hal_serial_Read;
 use hal::{
     gpio::{bank0, Function, Pin, Uart},
     pac::UART1,
     uart::{Enabled, UartPeripheral},
 };
 use rp2040_hal as hal;
+
+use crate::hid;
 
 pub fn run(
     _uart: &mut UartPeripheral<
@@ -17,16 +20,21 @@ pub fn run(
     >,
     delay: &mut cortex_m::delay::Delay,
 ) -> ! {
-    _uart.write_full_blocking(b"UART example\r\n");
+    _uart.write_full_blocking(b"UART Connected\r\n");
+    let mut buffer = [0u8; 10240];
 
-    let mut value = 0u32;
     loop {
-        writeln!(_uart, "value: {value:02}\r").unwrap();
-        delay.delay_ms(1000);
-        value += 1
-        // delay.delay_ms(1);
-        // hid::pro_controller::set_input_line("A");
-        // delay.delay_ms(1);
-        // hid::pro_controller::set_input_line("");
+        let mut buffer = [0u8; 1024];
+        let ret = _uart.read();
+        match ret {
+            Ok(_) => {
+                let buffer_str = core::str::from_utf8(&buffer).unwrap();
+                hid::pro_controller::set_input_line(buffer_str);
+                writeln!(_uart, "recv: {buffer_str}\r").unwrap();
+            }
+            Err(_) => {
+                delay.delay_ms(1);
+            }
+        }
     }
 }
