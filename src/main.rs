@@ -11,7 +11,10 @@ mod r#uart;
 
 use defmt::*;
 use defmt_rtt as _;
+use fugit::RateExtU32;
 use hal::multicore::{Multicore, Stack};
+use hal::uart::{DataBits, StopBits, UartConfig};
+use hal::Clock;
 use hal::{
     // clocks::Clock,
     // uart::common_configs,
@@ -89,12 +92,26 @@ fn main() -> ! {
     let core1 = &mut cores[1];
     let _test = core1.spawn(unsafe { &mut CORE1_STACK.mem }, move || core1_task());
 
-    r#uart::run(&mut _delay);
+    // Set the pins to their default state
+    let pins = hal::gpio::Pins::new(
+        pac.IO_BANK0,
+        pac.PADS_BANK0,
+        sio.gpio_bank0,
+        &mut pac.RESETS,
+    );
 
-    // loop {
-    //     _delay.delay_ms(1);
-    //     hid::pro_controller::set_input_line("A");
-    //     _delay.delay_ms(1);
-    //     hid::pro_controller::set_input_line("");
-    // }
+    let uart_pins = (
+        // UART TX (characters sent from RP2040) on pin 1 (GPIO0)
+        pins.gpio4.into_mode::<hal::gpio::FunctionUart>(),
+        // UART RX (characters received by RP2040) on pin 2 (GPIO1)
+        pins.gpio5.into_mode::<hal::gpio::FunctionUart>(),
+    );
+    let mut _uart = hal::uart::UartPeripheral::new(pac.UART1, uart_pins, &mut pac.RESETS)
+        .enable(
+            UartConfig::new(9600.Hz(), DataBits::Eight, None, StopBits::One),
+            clocks.peripheral_clock.freq(),
+        )
+        .unwrap();
+
+    r#uart::run(&mut _uart, &mut _delay);
 }
