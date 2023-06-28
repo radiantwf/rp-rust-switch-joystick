@@ -86,6 +86,7 @@ fn main() -> ! {
 
     let mut _delay =
         cortex_m::delay::Delay::new(_core.SYST, clocks.system_clock.get_freq().to_Hz());
+    let mut _timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS);
 
     let mut mc = Multicore::new(&mut pac.PSM, &mut pac.PPB, &mut sio.fifo);
     let cores = mc.cores();
@@ -113,5 +114,5 @@ fn main() -> ! {
         )
         .unwrap();
 
-    r#uart::run(&mut _uart, &mut _delay);
+    r#uart::run(&mut _uart, &mut _timer, &mut _delay);
 }
