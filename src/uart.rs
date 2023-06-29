@@ -36,9 +36,9 @@ pub fn run(
                 if buffer[size - 1] == b'\n' {
                     let buffer_str = core::str::from_utf8(&vec.as_slice()).unwrap();
                     hid::pro_controller::set_input_line(buffer_str);
+                    _uart.write_full_blocking(b"OK\n");
                     release_ticks = _timer.get_counter().ticks() + 1_000_000 * 60;
                     vec.clear();
-                    _delay.delay_ms(1);
                 }
             }
             Err(_) => {
