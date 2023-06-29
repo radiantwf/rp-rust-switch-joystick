@@ -6,14 +6,5 @@ A virtual HID USB joystick created using Raspberry Pi Pico (W)
 
 已实现功能：
 
-- Switch Pro 手柄模拟，现脚本为连点A。
-
-待实现功能（包含技术层面）：
-
-- 配置文件、脚本文件存储读取支持；
-- 脚本语法解释器；
-- 切换脚本；
-- W版本网络支持；
-- 实时控制（需要网络功能支持）；
-- 异步操作相关语法；
-- 稳定性相关的测试；
+- Switch Pro 手柄模拟
+- 支持串口控制手柄操作
