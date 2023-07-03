@@ -29,19 +29,17 @@ const _INPUT2_ZL: u8 = 0b10000000;
 
 #[derive(Debug)]
 pub struct ProControllerInput {
-    action_line: String<255>,
+    buffer: [u8; 11],
 }
 impl ProControllerInput {
-    pub fn new(_action_line: &str) -> Self {
+    pub fn create_by_action(_action_line: &str) -> Self {
+        let mut action_line: String<1024> = String::new();
         match String::from_str(_action_line.trim()) {
-            Ok(_line) => ProControllerInput { action_line: _line },
-            Err(_) => ProControllerInput {
-                action_line: String::new(),
-            },
+            Ok(_line) => action_line = _line,
+            Err(_) => {}
         }
-    }
-    pub fn buffer(&self) -> Vec<u8, 11> {
-        let _buffer = &mut [0u8; 11];
+
+        let mut _buffer = [0u8; 11];
         _buffer[0] = 0x81;
         _buffer[10] = 0x00;
 
@@ -50,7 +48,7 @@ impl ProControllerInput {
         let mut rx: u32 = 0x800;
         let mut ry: u32 = 0x800;
 
-        let mut iter = self.action_line.split("|");
+        let mut iter = action_line.split("|");
         loop {
             match iter.next() {
                 None => break,
@@ -86,13 +84,15 @@ impl ProControllerInput {
 
                         _action => {
                             if _action.starts_with("LSTICK@") {
-                                let _coord =
-                                    self._coordinate_str_convert(&_action["LSTICK@".len()..]);
+                                let _coord = ProControllerInput::_coordinate_str_convert(
+                                    &_action["LSTICK@".len()..],
+                                );
                                 lx = _coord.0;
                                 ly = _coord.1;
                             } else if _action.starts_with("RSTICK@") {
-                                let _coord =
-                                    self._coordinate_str_convert(&_action["RSTICK@".len()..]);
+                                let _coord = ProControllerInput::_coordinate_str_convert(
+                                    &_action["RSTICK@".len()..],
+                                );
                                 rx = _coord.0;
                                 ry = _coord.1;
                             }
@@ -107,10 +107,40 @@ impl ProControllerInput {
         _buffer[7] = rx as u8 & 0xff;
         _buffer[8] = ((rx >> 8) as u8 & 0x0f) | ((ry as u8 & 0x0f) << 4);
         _buffer[9] = (ry >> 4) as u8 & 0xff;
-        Vec::from_slice(&_buffer[..]).unwrap()
+        ProControllerInput { buffer: _buffer }
     }
 
-    fn _coordinate_str_convert(&self, _coord: &str) -> (u32, u32) {
+    pub fn create_by_uart_buffer(uart_buffer: [u8; 7]) -> Self {
+        let mut _buffer = [0u8; 11];
+        _buffer[0] = 0x81;
+        _buffer[10] = 0x00;
+
+        _buffer[1] = uart_buffer[0];
+        _buffer[2] = uart_buffer[1];
+        _buffer[3] = uart_buffer[2];
+
+        let _coord =
+            ProControllerInput::_coordinate_bytes_convert([uart_buffer[3], uart_buffer[4]]);
+        let lx = _coord.0;
+        let ly = _coord.1;
+        let _coord =
+            ProControllerInput::_coordinate_bytes_convert([uart_buffer[5], uart_buffer[6]]);
+        let rx = _coord.0;
+        let ry = _coord.1;
+        _buffer[4] = lx as u8 & 0xff;
+        _buffer[5] = ((lx >> 8) as u8 & 0x0f) | ((ly as u8 & 0x0f) << 4);
+        _buffer[6] = (ly >> 4) as u8 & 0xff;
+        _buffer[7] = rx as u8 & 0xff;
+        _buffer[8] = ((rx >> 8) as u8 & 0x0f) | ((ry as u8 & 0x0f) << 4);
+        _buffer[9] = (ry >> 4) as u8 & 0xff;
+        ProControllerInput { buffer: _buffer }
+    }
+
+    pub fn buffer(&self) -> Vec<u8, 11> {
+        Vec::from_slice(&self.buffer[..]).unwrap()
+    }
+
+    fn _coordinate_str_convert(_coord: &str) -> (u32, u32) {
         let mut x = 0x800;
         let mut y = 0x800;
         let _coord: Vec<&str, 100> = _coord.split(",").collect();
@@ -146,6 +176,14 @@ impl ProControllerInput {
 
         x = ((_x + 128) * 16) as u32;
         y = ((_y * (-1) + 128) * 16) as u32;
+        return (x, y);
+    }
+
+    fn _coordinate_bytes_convert(bytes: [u8; 2]) -> (u32, u32) {
+        let _x = bytes[0] as i8 as i32;
+        let _y = bytes[1] as i8 as i32;
+        let x = ((_x + 128) * 16) as u32;
+        let y = ((_y * (-1) + 128) * 16) as u32;
         return (x, y);
     }
 }

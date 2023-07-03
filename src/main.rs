@@ -12,6 +12,7 @@ mod r#uart;
 use defmt::*;
 use defmt_rtt as _;
 use fugit::RateExtU32;
+use hal::dma::DMAExt;
 use hal::multicore::{Multicore, Stack};
 use hal::uart::{DataBits, StopBits, UartConfig};
 use hal::Clock;
@@ -107,12 +108,15 @@ fn main() -> ! {
         // UART RX (characters received by RP2040) on pin 2 (GPIO1)
         pins.gpio5.into_mode::<hal::gpio::FunctionUart>(),
     );
+
     let mut _uart = hal::uart::UartPeripheral::new(pac.UART1, uart_pins, &mut pac.RESETS)
         .enable(
             UartConfig::new(9600.Hz(), DataBits::Eight, None, StopBits::One),
             clocks.peripheral_clock.freq(),
         )
         .unwrap();
+    let _dma = pac.DMA.split(&mut pac.RESETS);
+    // let (_rx, _tx) = _uart.split();
 
-    r#uart::run(&mut _uart, &mut _timer, &mut _delay);
+    r#uart::run(_uart, _dma, _timer, _delay);
 }

@@ -1,14 +1,21 @@
-use crate::hid;
+use cortex_m::singleton;
+use cortex_m::{delay::Delay, prelude::_embedded_hal_serial_Read};
 use hal::{
+    dma::Channels,
     gpio::{bank0, Function, Pin, Uart},
     pac::UART1,
     uart::{Enabled, UartPeripheral},
+    Timer,
 };
-use heapless::Vec;
 use rp2040_hal as hal;
+// a20201010000000000a303
+use crate::hid;
+
+const STX: [u8; 2] = [0xA2, 0x02];
+const ETX: [u8; 2] = [0xA3, 0x03];
 
 pub fn run(
-    _uart: &mut UartPeripheral<
+    _uart: UartPeripheral<
         Enabled,
         UART1,
         (
@@ -16,34 +23,58 @@ pub fn run(
             Pin<bank0::Gpio5, Function<Uart>>,
         ),
     >,
-    _timer: &mut hal::Timer,
-    _delay: &mut cortex_m::delay::Delay,
+    _dma: Channels,
+    _timer: Timer,
+    _delay: Delay,
 ) -> ! {
-    _uart.write_full_blocking(b"UART Connected\r\n");
-
-    let mut vec: Vec<u8, 10240> = Vec::new();
-    let mut buffer = [0u8; 1024];
-    let mut release_ticks: u64 = 0;
+    let (_rx, _tx) = _uart.split();
+    _tx.write_full_blocking(b"UART Connected\r\n");
+    let rx_buf = singleton!(: [u8; 11] = [0; 11]).unwrap();
+    let mut rx_transfer = hal::dma::single_buffer::Config::new(_dma.ch0, _rx, rx_buf).start();
     loop {
-        if release_ticks > 0 && release_ticks < _timer.get_counter().ticks() {
-            hid::pro_controller::set_input_line("");
-            release_ticks = 0;
+        let (ch0, mut rx, rx_buf) = rx_transfer.wait();
+
+        let len_rx_buf = rx_buf.len();
+        let mut misalignment = false;
+        for (i, v) in STX.iter().enumerate() {
+            if rx_buf[i] != *v {
+                misalignment = true;
+                break;
+            }
         }
-        let ret = _uart.read_raw(&mut buffer);
-        match ret {
-            Ok(size) => {
-                vec.extend_from_slice(&buffer[..size]).unwrap();
-                if buffer[size - 1] == b'\n' {
-                    let buffer_str = core::str::from_utf8(&vec.as_slice()).unwrap();
-                    hid::pro_controller::set_input_line(buffer_str);
-                    _uart.write_full_blocking(b"OK\n");
-                    release_ticks = _timer.get_counter().ticks() + 1_000_000 * 60;
-                    vec.clear();
+        for (i, v) in ETX.iter().enumerate() {
+            if rx_buf[len_rx_buf - 2 + i] != *v {
+                misalignment = true;
+                break;
+            }
+        }
+        if misalignment {
+            let mut _etx_index = 0;
+            loop {
+                let _result = rx.read();
+                match _result {
+                    Ok(v) => {
+                        if v == ETX[_etx_index] {
+                            _etx_index += 1;
+                            if _etx_index == ETX.len() {
+                                break;
+                            }
+                        } else {
+                            _etx_index = 0;
+                        }
+                    }
+                    Err(_) => {
+                        _etx_index = 0;
+                    }
                 }
             }
-            Err(_) => {
-                _delay.delay_ms(1);
-            }
+        } else {
+            let mut buf = [0u8; 7];
+            buf.clone_from_slice(&rx_buf[2..9]);
+            hid::pro_controller::set_input_uart_buffer(buf);
         }
+
+        let rx_buf = singleton!(: [u8; 11] = [0; 11]).unwrap();
+        rx_transfer = hal::dma::single_buffer::Config::new(ch0, rx, rx_buf).start();
     }
 }

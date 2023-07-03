@@ -54,13 +54,19 @@ pub fn init(usb_bus: UsbBus, delay: Delay) {
         USB_DEV = Some(dev);
         DELAY = Some(delay);
         TIMER = Some(timer);
-        CONTROLLER_INPUT = Some(ProControllerInput::new(""));
+        CONTROLLER_INPUT = Some(ProControllerInput::create_by_action(""));
     }
 }
 
 pub fn set_input(input_line: &str) {
     unsafe {
-        CONTROLLER_INPUT = Some(ProControllerInput::new(input_line));
+        CONTROLLER_INPUT = Some(ProControllerInput::create_by_action(input_line));
+    }
+}
+
+pub fn set_input_uart_buffer(uart_buffer: [u8; 7]) {
+    unsafe {
+        CONTROLLER_INPUT = Some(ProControllerInput::create_by_uart_buffer(uart_buffer));
     }
 }
 
