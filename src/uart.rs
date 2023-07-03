@@ -74,7 +74,6 @@ pub fn run(
             hid::pro_controller::set_input_uart_buffer(buf);
         }
 
-        let rx_buf = singleton!(: [u8; 11] = [0; 11]).unwrap();
         rx_transfer = hal::dma::single_buffer::Config::new(ch0, rx, rx_buf).start();
     }
 }

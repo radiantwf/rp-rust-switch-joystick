@@ -180,8 +180,8 @@ impl ProControllerInput {
     }
 
     fn _coordinate_bytes_convert(bytes: [u8; 2]) -> (u32, u32) {
-        let _x = bytes[0] as i8 as i32;
-        let _y = bytes[1] as i8 as i32;
+        let _x = bytes[0] as i32 - 0x80;
+        let _y = bytes[1] as i32 - 0x80;
         let x = ((_x + 128) * 16) as u32;
         let y = ((_y * (-1) + 128) * 16) as u32;
         return (x, y);
