@@ -187,10 +187,46 @@ impl ProControllerInput {
     }
 
     fn _coordinate_bytes_convert(bytes: [u8; 2]) -> (u32, u32) {
-        let _x = bytes[0] as i32 - 0x80;
-        let _y = bytes[1] as i32 - 0x80;
-        let x = ((_x + 128) * 16) as u32;
-        let y = ((_y * (-1) + 128) * 16) as u32;
+        let mut _x = bytes[0] as i32 - 0x80;
+        let mut _y = bytes[1] as i32 - 0x80;
+        (_x, _y) = ProControllerInput::_get_point_in_circle(_x, _y);
+        let x = ((_x + 0x80) * 16) as u32;
+        let y = ((_y * (-1) + 0x80) * 16) as u32;
         return (x, y);
+    }
+    fn _get_point_in_circle(x: i32, y: i32) -> (i32, i32) {
+        let (intersect_x, intersect_y) = ProControllerInput::_get_intersection(x, y);
+
+        let theta = libm::atan2f(intersect_y as f32, intersect_x as f32);
+        let x_cartesian = libm::cosf(theta) * 127.0;
+        let y_cartesian = libm::sinf(theta) * 127.0;
+
+        let x = libm::roundf(intersect_x.abs() as f32 * x_cartesian / 127.0) as i32;
+        let y = libm::roundf(intersect_y.abs() as f32 * y_cartesian / 127.0) as i32;
+        return (x, y);
+    }
+
+    fn _get_intersection(x: i32, y: i32) -> (i32, i32) {
+        if x >= -127 && x <= 127 && y >= -127 && y <= 127 {
+            return (x, y);
+        }
+        let slope = y as f32 / x as f32;
+        let mut x_intersect = 0;
+        let mut y_intersect = 0;
+        if x < -127 {
+            x_intersect = -127;
+            y_intersect = (slope * ((x_intersect - x) as f32) + y as f32) as i32;
+        } else if x > 127 {
+            x_intersect = 127;
+            y_intersect = (slope * ((x_intersect - x) as f32) + y as f32) as i32;
+        }
+        if y < -127 {
+            y_intersect = -127;
+            x_intersect = (((y_intersect - y) as f32) / slope + x as f32) as i32;
+        } else if y > 127 {
+            y_intersect = 127;
+            x_intersect = (((y_intersect - y) as f32) / slope + x as f32) as i32;
+        }
+        (x_intersect, y_intersect)
     }
 }
