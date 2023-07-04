@@ -10,7 +10,7 @@ use hal::{
 };
 use rp2040_hal as hal;
 // a201010000000000a3
-
+// a200000080808080a3
 use crate::hid;
 
 const STX: &[u8] = b"\xA2";
