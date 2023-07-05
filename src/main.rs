@@ -104,12 +104,12 @@ fn main() -> ! {
 
     let uart_pins = (
         // UART TX (characters sent from RP2040) on pin 1 (GPIO0)
-        pins.gpio4.into_mode::<hal::gpio::FunctionUart>(),
+        pins.gpio0.into_mode::<hal::gpio::FunctionUart>(),
         // UART RX (characters received by RP2040) on pin 2 (GPIO1)
-        pins.gpio5.into_mode::<hal::gpio::FunctionUart>(),
+        pins.gpio1.into_mode::<hal::gpio::FunctionUart>(),
     );
 
-    let mut _uart = hal::uart::UartPeripheral::new(pac.UART1, uart_pins, &mut pac.RESETS)
+    let mut _uart = hal::uart::UartPeripheral::new(pac.UART0, uart_pins, &mut pac.RESETS)
         .enable(
             UartConfig::new(115200.Hz(), DataBits::Eight, None, StopBits::One),
             clocks.peripheral_clock.freq(),

@@ -4,7 +4,7 @@ use cortex_m::{delay::Delay, prelude::_embedded_hal_serial_Read};
 use hal::{
     dma::Channels,
     gpio::{bank0, Function, Pin, Uart},
-    pac::UART1,
+    pac::UART0,
     uart::{Enabled, UartPeripheral},
     Timer,
 };
@@ -20,10 +20,10 @@ const BUFFER_LENGTH: usize = 7;
 pub fn run(
     _uart: UartPeripheral<
         Enabled,
-        UART1,
+        UART0,
         (
-            Pin<bank0::Gpio4, Function<Uart>>,
-            Pin<bank0::Gpio5, Function<Uart>>,
+            Pin<bank0::Gpio0, Function<Uart>>,
+            Pin<bank0::Gpio1, Function<Uart>>,
         ),
     >,
     _dma: Channels,
