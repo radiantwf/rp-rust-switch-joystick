@@ -84,7 +84,7 @@ pub fn start() -> ! {
     let timer = unsafe { TIMER.as_mut().unwrap() };
     info!("{}\tstart", timer.get_counter().ticks());
     loop {
-        _delay.delay_us(500);
+        _delay.delay_us(50);
         if unsafe { CONNECTED } {
             let mut vec: Vec<u8, 64> = Vec::new();
             let input = unsafe { CONTROLLER_INPUT.as_mut().unwrap() };
