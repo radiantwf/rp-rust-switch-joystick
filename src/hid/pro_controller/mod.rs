@@ -16,3 +16,7 @@ pub fn start() -> ! {
 pub fn set_input_line(input_line: &str) {
     pro_controller::set_input(input_line);
 }
+
+pub fn set_input_uart_buffer(uart_buffer: [u8; 7]) {
+    pro_controller::set_input_uart_buffer(uart_buffer);
+}

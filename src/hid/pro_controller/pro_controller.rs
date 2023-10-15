@@ -23,6 +23,7 @@ static mut TIMER: Option<Timer> = None;
 static mut DELAY: Option<Delay> = None;
 static mut CONTROLLER_INPUT: Option<ProControllerInput> = None;
 static mut CONNECTED: bool = false;
+const XTAL_FREQ_HZ: u32 = 12_000_000u32;
 
 pub fn init(usb_bus: UsbBus, delay: Delay) {
     static mut ALLOCATOR: Option<UsbBusAllocator<UsbBus>> = None;
@@ -48,19 +49,38 @@ pub fn init(usb_bus: UsbBus, delay: Delay) {
         .build();
 
     let mut pac = unsafe { pac::Peripherals::steal() };
-    let timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS);
+    // Set up the watchdog driver - needed by the clock setup code
+    let mut watchdog = hal::Watchdog::new(pac.WATCHDOG);
+    let clocks = hal::clocks::init_clocks_and_plls(
+        XTAL_FREQ_HZ,
+        pac.XOSC,
+        pac.CLOCKS,
+        pac.PLL_SYS,
+        pac.PLL_USB,
+        &mut pac.RESETS,
+        &mut watchdog,
+    )
+    .ok()
+    .unwrap();
+    let timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS, &clocks);
     unsafe {
         USB_HID = Some(hid);
         USB_DEV = Some(dev);
         DELAY = Some(delay);
         TIMER = Some(timer);
-        CONTROLLER_INPUT = Some(ProControllerInput::new(""));
+        CONTROLLER_INPUT = Some(ProControllerInput::create_by_action(""));
     }
 }
 
 pub fn set_input(input_line: &str) {
     unsafe {
-        CONTROLLER_INPUT = Some(ProControllerInput::new(input_line));
+        CONTROLLER_INPUT = Some(ProControllerInput::create_by_action(input_line));
+    }
+}
+
+pub fn set_input_uart_buffer(uart_buffer: [u8; 7]) {
+    unsafe {
+        CONTROLLER_INPUT = Some(ProControllerInput::create_by_uart_buffer(uart_buffer));
     }
 }
 
@@ -78,7 +98,7 @@ pub fn start() -> ! {
     let timer = unsafe { TIMER.as_mut().unwrap() };
     info!("{}\tstart", timer.get_counter().ticks());
     loop {
-        _delay.delay_us(500);
+        _delay.delay_us(50);
         if unsafe { CONNECTED } {
             let mut vec: Vec<u8, 64> = Vec::new();
             let input = unsafe { CONTROLLER_INPUT.as_mut().unwrap() };
