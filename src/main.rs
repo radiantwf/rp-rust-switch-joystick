@@ -87,7 +87,6 @@ fn main() -> ! {
 
     let mut _delay =
         cortex_m::delay::Delay::new(_core.SYST, clocks.system_clock.get_freq().to_Hz());
-    let mut _timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS);
 
     let mut mc = Multicore::new(&mut pac.PSM, &mut pac.PPB, &mut sio.fifo);
     let cores = mc.cores();
@@ -104,9 +103,9 @@ fn main() -> ! {
 
     let uart_pins = (
         // UART TX (characters sent from RP2040) on pin 1 (GPIO0)
-        pins.gpio0.into_mode::<hal::gpio::FunctionUart>(),
+        pins.gpio0.into_function::<hal::gpio::FunctionUart>(),
         // UART RX (characters received by RP2040) on pin 2 (GPIO1)
-        pins.gpio1.into_mode::<hal::gpio::FunctionUart>(),
+        pins.gpio1.into_function::<hal::gpio::FunctionUart>(),
     );
 
     let mut _uart = hal::uart::UartPeripheral::new(pac.UART0, uart_pins, &mut pac.RESETS)
@@ -118,5 +117,5 @@ fn main() -> ! {
     let _dma = pac.DMA.split(&mut pac.RESETS);
     // let (_rx, _tx) = _uart.split();
 
-    r#uart::run(_uart, _dma, _timer, _delay);
+    r#uart::run(_uart, _dma, _delay);
 }

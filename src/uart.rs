@@ -3,10 +3,9 @@ use cortex_m::singleton;
 use cortex_m::{delay::Delay, prelude::_embedded_hal_serial_Read};
 use hal::{
     dma::Channels,
-    gpio::{bank0, Function, Pin, Uart},
+    gpio::{bank0, FunctionUart, Pin, PullDown},
     pac::UART0,
     uart::{Enabled, UartPeripheral},
-    Timer,
 };
 use rp2040_hal as hal;
 // a201010000000000a3
@@ -22,12 +21,11 @@ pub fn run(
         Enabled,
         UART0,
         (
-            Pin<bank0::Gpio0, Function<Uart>>,
-            Pin<bank0::Gpio1, Function<Uart>>,
+            Pin<bank0::Gpio0, FunctionUart, PullDown>,
+            Pin<bank0::Gpio1, FunctionUart, PullDown>,
         ),
     >,
     _dma: Channels,
-    _timer: Timer,
     _delay: Delay,
 ) -> ! {
     let (_rx, mut _tx) = _uart.split();
