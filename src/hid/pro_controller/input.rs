@@ -70,7 +70,10 @@ impl ProControllerInput {
                     match iter.next() {
                         None => break,
                         Some(_action) => {
-                            let mut upper_action: String<100> = String::from(_action);
+                            let mut upper_action: String<100> = match String::try_from(_action) {
+                                Ok(string) => string,
+                                Err(_) => String::new(),
+                            };
                             upper_action.make_ascii_uppercase();
 
                             match &upper_action[..] {
