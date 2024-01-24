@@ -13,6 +13,7 @@ pub fn start() -> ! {
     pro_controller::start();
 }
 
+#[allow(dead_code)]
 pub fn set_input_line(input_line: &str) {
     pro_controller::set_input(input_line);
 }
