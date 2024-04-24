@@ -33,20 +33,19 @@ pub fn init(usb_bus: UsbBus, delay: Delay) {
     let allocator = unsafe { ALLOCATOR.as_ref().unwrap() };
 
     let hid = HIDClass::new(allocator, SWITCH_PRO_DESCRIPTOR, 1);
-    let dev = UsbDeviceBuilder::new(allocator, UsbVidPid(0x057E, 0x2009))
+    let mut dev_builder = UsbDeviceBuilder::new(allocator, UsbVidPid(0x057E, 0x2009))
         .device_release(0x0200)
-        .manufacturer("Nintendo Co., Ltd.")
-        .product("Pro Controller")
-        // .serial_number("000000000001")
-        .serial_number("0740D13F26CA")
-        .max_packet_size_0(64)
         .device_class(0x00)
         .device_sub_class(0x00)
         .device_protocol(0x00)
-        .supports_remote_wakeup(true)
-        // .self_powered(true)
-        // // .max_power(0xFA)
-        .build();
+        .supports_remote_wakeup(true);
+    dev_builder = dev_builder.max_packet_size_0(64).unwrap();
+    let descriptor = usb_device::prelude::StringDescriptors::default();
+    descriptor.manufacturer("Nintendo Co., Ltd.");
+    descriptor.product("Pro Controller");
+    descriptor.serial_number("0740D13F26CA");
+    dev_builder = dev_builder.strings(&[descriptor]).unwrap();
+    let dev = dev_builder.build();
 
     let mut pac = unsafe { pac::Peripherals::steal() };
     // Set up the watchdog driver - needed by the clock setup code
