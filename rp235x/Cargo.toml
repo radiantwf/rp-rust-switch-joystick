@@ -22,16 +22,6 @@ heapless = "0.8.0"
 fixed-queue = "0.5.1"
 fugit = "0.3.7"
 
-[build]
-target = "thumbv8m.main-none-eabihf"
-
-[target.thumbv8m.main-none-eabihf]
-rustflags = [
-    "-C", "link-arg=--nmagic",
-    "-C", "link-arg=-Tlink.x",
-    "-C", "link-arg=-Tmemory.x",
-]
-
 # embedded-alloc = "0.6.0"
 # embedded-io = "0.6.1"
 # critical-section = {version = "1.2.0"}

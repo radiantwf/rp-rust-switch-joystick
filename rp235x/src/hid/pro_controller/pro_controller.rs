@@ -124,7 +124,6 @@ pub fn start() -> ! {
     }
 }
 
-#[allow(non_snake_case)]
 #[interrupt]
 unsafe fn USBCTRL_IRQ() {
     let timer = TIMER.as_mut().unwrap();
